@@ -1,0 +1,573 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap');
+
+/* ================================================================
+   Global reset & base
+   ================================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* LIGHT THEME (AWS Style) */
+  --clr-bg:          #f2f3f3;
+  --clr-surface:     #ffffff;
+  --clr-surface-alt: #fafafa;
+  --clr-border:      #eaeded;
+  --clr-border-hover:#d5dbdb;
+  --clr-accent:      #ec7211; /* AWS Orange */
+  --clr-accent-dark: #eb5f07;
+  --clr-text:        #16191f;
+  --clr-text-muted:  #545b64;
+  --clr-danger:      #d13212;
+  --clr-warning:     #f89256;
+  --clr-success:     #1d8102;
+  --clr-warning-bg:  #fdf3eb;
+  --clr-danger-bg:   #fdeded;
+  
+  --radius-lg:       8px;
+  --radius-md:       4px;
+  --radius-btn:      24px; /* AWS pill shaped buttons */
+  
+  --shadow:          0 1px 4px 0 rgba(0,0,0,0.05), 0 2px 8px 0 rgba(0,0,0,0.02);
+  --transition:      0.2s ease;
+}
+
+[data-theme='dark'] {
+  /* DARK THEME (AWS Console Visual Update Style) */
+  --clr-bg:          #0f1115;
+  --clr-surface:     #1c252c;
+  --clr-surface-alt: #222f3e;
+  --clr-border:      #414d5c;
+  --clr-border-hover:#5a6b80;
+  --clr-accent:      #ec7211;
+  --clr-accent-dark: #f90;
+  --clr-text:        #f2f3f3;
+  --clr-text-muted:  #aab7b8;
+  --clr-danger:      #f05252;
+  --clr-warning:     #f6b000;
+  --clr-success:     #22c55e;
+  --clr-warning-bg:  rgba(246,176,0,0.12);
+  --clr-danger-bg:   rgba(240,82,82,0.12);
+  --shadow:          0 4px 12px rgba(0,0,0,0.4);
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: var(--clr-bg);
+  color: var(--clr-text);
+  font-family: 'Google Sans', 'Noto Sans', -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  transition: background var(--transition), color var(--transition);
+}
+
+/* ================================================================
+   Page wrapper
+   ================================================================ */
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ================================================================
+   Header
+   ================================================================ */
+.site-header {
+  background: var(--clr-surface);
+  border-bottom: 2px solid var(--clr-border);
+  padding: 12px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.header-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.site-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--clr-text);
+  letter-spacing: -0.01em;
+}
+
+.site-subtitle {
+  font-size: 0.8rem;
+  color: var(--clr-text-muted);
+}
+
+/* ── Theme Toggle ── */
+.theme-toggle-btn {
+  background: transparent;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-btn);
+  padding: 8px 10px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--clr-text);
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  line-height: 1;
+}
+.theme-toggle-btn:hover {
+  background: var(--clr-surface-alt);
+  border-color: var(--clr-border-hover);
+}
+
+#themeIcon {
+  display: inline-block;
+  font-size: 1.2rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+/* ================================================================
+   Flash messages
+   ================================================================ */
+.flash-container {
+  max-width: 960px;
+  margin: 20px auto 0;
+  padding: 0 20px;
+}
+
+.flash {
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.flash--warning {
+  background: var(--clr-warning-bg);
+  color: var(--clr-warning);
+  border: 1px solid var(--clr-warning);
+}
+
+.flash--danger {
+  background: var(--clr-danger-bg);
+  color: var(--clr-danger);
+  border: 1px solid var(--clr-danger);
+}
+
+/* ================================================================
+   Main content
+   ================================================================ */
+.main-content {
+  flex: 1;
+  max-width: 960px;
+  width: 100%;
+  margin: 32px auto;
+  padding: 0 20px;
+}
+
+/* ================================================================
+   Cards
+   ================================================================ */
+.card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow);
+  transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+
+.card-intro {
+  color: var(--clr-text-muted);
+  margin-bottom: 28px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.card-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--clr-text);
+  border-bottom: 1px solid var(--clr-border);
+  padding-bottom: 10px;
+}
+
+/* ================================================================
+   Form elements
+   ================================================================ */
+.predict-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--clr-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label-icon {
+  font-size: 1.1rem;
+}
+
+/* ── Image inputs wrapper (upload + camera) ── */
+.image-source-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 16px;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  background: var(--clr-surface-alt);
+}
+
+/* ── File drop zone ── */
+.file-drop-zone {
+  position: relative;
+  border: 2px dashed var(--clr-border);
+  border-radius: var(--radius-lg);
+  background: var(--clr-surface-alt);
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  overflow: hidden;
+}
+
+.file-drop-zone:hover {
+  border-color: var(--clr-border-hover);
+  background: var(--clr-bg);
+}
+
+.file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.drop-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  color: var(--clr-text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.drop-icon {
+  font-size: 2rem;
+  color: var(--clr-text-muted);
+  opacity: 0.7;
+}
+
+.drop-hint {
+  font-size: 0.8rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.image-preview {
+  max-height: 260px;
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+  padding: 8px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.file-hint {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--clr-danger);
+  margin-top: 4px;
+}
+
+/* ── Text input (country typeahead) ── */
+.form-input {
+  background: var(--clr-surface);
+  color: var(--clr-text);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  width: 100%;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.form-input::placeholder {
+  color: var(--clr-text-muted);
+  opacity: 0.8;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--clr-accent);
+  box-shadow: 0 0 0 2px rgba(236,114,17,0.2);
+}
+
+/* ── Secondary button (matches existing theme tokens) ── */
+.btn-secondary {
+  background: var(--clr-surface-alt);
+  color: var(--clr-text);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-btn);
+  padding: 10px 16px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--clr-border-hover);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Camera capture UI ── */
+.camera-box {
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  background: var(--clr-surface-alt);
+}
+
+.camera-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.camera-video {
+  width: 100%;
+  max-height: 320px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--clr-border);
+  background: var(--clr-surface);
+  object-fit: cover;
+}
+
+/* ── Predict button (AWS Pill style) ── */
+.btn-predict {
+  background: var(--clr-accent);
+  color: #fff;
+  border: 1px solid transparent;
+  border-radius: var(--radius-btn);
+  padding: 10px 24px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: all var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-predict:hover:not(:disabled) {
+  background: var(--clr-accent-dark);
+}
+
+.btn-predict:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn-predict:disabled {
+  background: var(--clr-surface-alt);
+  color: var(--clr-text-muted);
+  border-color: var(--clr-border);
+  cursor: not-allowed;
+}
+
+/* ================================================================
+   Result page
+   ================================================================ */
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .result-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.result-image-card {
+  text-align: center;
+}
+
+.result-image {
+  max-width: 100%;
+  max-height: 280px;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+  border: 1px solid var(--clr-border);
+}
+
+/* ── Result meta chips ── */
+.result-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.meta-chip {
+  background: var(--clr-surface-alt);
+  border: 1px solid var(--clr-border);
+  color: var(--clr-text-muted);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+/* ── Result table rows ── */
+.result-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--clr-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--clr-border);
+  gap: 12px;
+}
+
+.result-row--risk {
+  border-left: 4px solid var(--clr-accent);
+}
+
+.result-key {
+  font-size: 0.9rem;
+  color: var(--clr-text-muted);
+  font-weight: 600;
+}
+
+.result-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--clr-text);
+  text-align: right;
+}
+
+.value--danger  { color: var(--clr-danger); }
+.value--warning { color: var(--clr-warning); }
+.value--success { color: var(--clr-success); }
+
+/* ── Error badge ── */
+.result-badge {
+  text-align: center;
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.result-badge--warning {
+  background: var(--clr-warning-bg);
+  color: var(--clr-warning);
+  border: 1px solid var(--clr-warning);
+}
+
+/* ── Back button (AWS Secondary Button style) ── */
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  color: var(--clr-text);
+  padding: 10px 24px;
+  border-radius: var(--radius-btn);
+  font-size: 0.95rem;
+  font-family: inherit;
+  font-weight: 700;
+  transition: all var(--transition);
+}
+
+.btn-back:hover {
+  background: var(--clr-surface-alt);
+  border-color: var(--clr-border-hover);
+}
+
+/* ================================================================
+   Footer
+   ================================================================ */
+.site-footer {
+  background: var(--clr-surface);
+  border-top: 1px solid var(--clr-border);
+  text-align: center;
+  padding: 16px;
+  font-size: 0.8rem;
+  color: var(--clr-text-muted);
+}

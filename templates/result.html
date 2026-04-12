@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prediction Result – Integrated Mpox System</title>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+  <div class="page-wrapper">
+
+    <!-- ── Header ── -->
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="header-content">
+          <span class="logo-icon">🦠</span>
+          <div>
+            <h1 class="site-title">Integrated Mpox System</h1>
+            <p class="site-subtitle">Disease Detection &amp; Outbreak Risk Prediction</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="theme-toggle-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle between light and dark theme">
+            <i id="themeIcon" class="ri-moon-line" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Main content ── -->
+    <main class="main-content">
+
+      {% if result.get('error') %}
+        <!-- ── Error / Invalid image ── -->
+        <div class="card result-card">
+          <div class="result-badge result-badge--warning">
+            ⚠️ {{ result['error'] }}
+          </div>
+          <a href="{{ url_for('index', country=country) }}" class="btn-back">← Predict Again</a>
+        </div>
+
+      {% else %}
+        <!-- ── Split layout: image + results ── -->
+        <div class="result-grid">
+
+          <!-- Uploaded image -->
+          <div class="card result-image-card">
+            <h2 class="card-section-title">Uploaded Image</h2>
+            <img
+              src="data:image/jpeg;base64,{{ img_b64 }}"
+              alt="Uploaded lesion image"
+              class="result-image"
+            />
+          </div>
+
+          <!-- Prediction results -->
+          <div class="card result-details-card">
+            <h2 class="card-section-title">Prediction Results</h2>
+
+            <div class="result-meta">
+              <span class="meta-chip">🌍 {{ country }}</span>
+            </div>
+
+            <div class="result-table">
+              {% for key, value in result.items() %}
+                <div class="result-row 
+                  {%- if key == 'Disease Prediction' and value == 'Monkeypox' %} result-row--danger
+                  {%- elif key == 'Disease Prediction' and value == 'Healthy' %} result-row--success
+                  {%- elif key == 'Regional Risk Level' and value == 'High' %} result-row--danger
+                  {%- elif key == 'Regional Risk Level' and value == 'Medium' %} result-row--warning
+                  {%- elif key == 'Regional Risk Level' and value == 'Low' %} result-row--success
+                  {%- endif %}">
+                  <span class="result-key">{{ key }}</span>
+                  <span class="result-value
+                    {%- if key == 'Disease Prediction' and value == 'Monkeypox' %} value--danger
+                    {%- elif key == 'Disease Prediction' and value == 'Healthy' %} value--success
+                    {%- elif key == 'Regional Risk Level' and value == 'High' %} value--danger
+                    {%- elif key == 'Regional Risk Level' and value == 'Medium' %} value--warning
+                    {%- elif key == 'Regional Risk Level' and value == 'Low' %} value--success
+                    {%- endif %}">
+                    {% if key == 'Disease Prediction' and value == 'Monkeypox' %}🔴
+                    {% elif key == 'Disease Prediction' and value == 'Healthy' %}🟢
+                    {% elif key == 'Regional Risk Level' and value == 'High' %}🔴
+                    {% elif key == 'Regional Risk Level' and value == 'Medium' %}🟡
+                    {% elif key == 'Regional Risk Level' and value == 'Low' %}🟢
+                    {% endif %}
+                    {{ value }}
+                  </span>
+                </div>
+              {% endfor %}
+            </div>
+
+            <a href="{{ url_for('index', country=country) }}" class="btn-predict" style="margin-top: 24px; text-decoration: none;">← Predict Again</a>
+          </div>
+
+        </div>
+      {% endif %}
+
+    </main>
+
+    <footer class="site-footer">
+      <p>MPOX Classification &amp; Predictive Modeling &copy; 2026</p>
+    </footer>
+
+  </div>
+
+  <script>
+    // ── Theme Toggle ──
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const htmlEl = document.documentElement;
+
+    const currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    if (currentTheme === 'dark') {
+      htmlEl.setAttribute('data-theme', 'dark');
+      themeIcon.setAttribute('class', 'ri-sun-line');
+    } else {
+      themeIcon.setAttribute('class', 'ri-moon-line');
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const theme = htmlEl.getAttribute('data-theme');
+      const newTheme = theme === 'dark' ? 'light' : 'dark';
+      htmlEl.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      const iconClass = newTheme === 'dark' ? 'ri-sun-line' : 'ri-moon-line';
+      themeIcon.setAttribute('class', iconClass);
+    });
+  </script>
+</body>
+</html>

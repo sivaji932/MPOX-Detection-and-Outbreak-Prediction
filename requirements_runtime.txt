@@ -1,0 +1,7 @@
+flask>=3.0
+numpy==2.0.2
+scikit-learn==1.6.1
+joblib
+pillow
+onnxruntime>=1.18.0
+gunicorn>=22.0.0

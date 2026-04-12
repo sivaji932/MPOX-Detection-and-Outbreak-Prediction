@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Integrated Mpox System</title>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+  <div class="page-wrapper">
+
+    <!-- ── Header ── -->
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="header-content">
+          <span class="logo-icon">🦠</span>
+          <div>
+            <h1 class="site-title">Integrated Mpox System</h1>
+            <p class="site-subtitle">Disease Detection &amp; Outbreak Risk Prediction</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="theme-toggle-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle between light and dark theme">
+            <i id="themeIcon" class="ri-moon-line" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Flash messages ── -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="flash flash--{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- ── Main card ── -->
+    <main class="main-content">
+      <div class="card">
+        <p class="card-intro">
+          Upload a skin-lesion image and select a country.
+          The system will classify the disease and — if Monkeypox is detected — estimate the
+          regional outbreak risk.
+        </p>
+
+        <form action="{{ url_for('predict') }}" method="post" enctype="multipart/form-data" class="predict-form" id="predictForm">
+
+          <!-- Image inputs (stacked in one box for mobile) -->
+          <div class="image-source-stack">
+            <!-- Image upload -->
+            <div class="form-group">
+              <label class="form-label" for="image">
+                <i class="ri-image-line label-icon" aria-hidden="true"></i> Skin Lesion Image
+              </label>
+              <div class="file-drop-zone" id="dropZone">
+                <input
+                  type="file"
+                  id="image"
+                  name="image"
+                  accept="image/*"
+                  class="file-input"
+                  onchange="previewImage(event)"
+                />
+                <div class="drop-prompt" id="dropPrompt">
+                  <i class="ri-folder-upload-line drop-icon" aria-hidden="true"></i>
+                  <span>Click to browse or drag &amp; drop</span>
+                  <span class="drop-hint">Any image file accepted</span>
+                </div>
+                <img id="imagePreview" class="image-preview hidden" alt="Preview" />
+              </div>
+              <p id="fileHint" class="file-hint hidden"></p>
+            </div>
+
+            <!-- Camera capture -->
+            <div class="form-group">
+              <label class="form-label">
+                <i class="ri-camera-line label-icon" aria-hidden="true"></i> Capture From Camera (optional)
+              </label>
+              <div class="camera-box">
+                <div class="camera-actions">
+                  <button type="button" class="btn-secondary" id="startCameraBtn">
+                    <i class="ri-camera-lens-line" aria-hidden="true"></i>
+                    <span>Open camera</span>
+                  </button>
+                  <button type="button" class="btn-secondary" id="takePhotoBtn" disabled>
+                    <i class="ri-camera-3-line" aria-hidden="true"></i>
+                    <span>Take photo</span>
+                  </button>
+                  <button type="button" class="btn-secondary" id="stopCameraBtn" disabled>
+                    <i class="ri-stop-line" aria-hidden="true"></i>
+                    <span>Stop</span>
+                  </button>
+                </div>
+
+                <video id="cameraVideo" class="camera-video hidden" autoplay playsinline></video>
+                <canvas id="cameraCanvas" class="hidden"></canvas>
+                <p id="cameraHint" class="file-hint hidden"></p>
+
+                <!-- Hidden file input used to submit the captured photo to Flask -->
+                <input
+                  type="file"
+                  id="capture_image"
+                  name="capture_image"
+                  accept="image/jpeg,image/png"
+                  class="hidden"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Country selector -->
+          <div class="form-group">
+            <label class="form-label" for="country">
+              <i class="ri-earth-line label-icon" aria-hidden="true"></i> Country / Region
+            </label>
+            <input
+              type="text"
+              id="country"
+              name="country"
+              class="form-input"
+              list="countries-list"
+              placeholder="Type or Select the Country"
+              value="{{ selected_country }}"
+              autocomplete="off"
+              required
+            />
+            <datalist id="countries-list">
+              {% for c in countries %}
+                <option value="{{ c }}"></option>
+              {% endfor %}
+            </datalist>
+          </div>
+
+          <button type="submit" class="btn-predict">
+            <span>Predict</span>
+          </button>
+
+        </form>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>MPOX Classification &amp; Predictive Modeling &copy; 2026</p>
+    </footer>
+
+  </div>
+
+  <script>
+    // ── Theme Toggle ──
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const htmlEl = document.documentElement;
+
+    const currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    if (currentTheme === 'dark') {
+      htmlEl.setAttribute('data-theme', 'dark');
+      themeIcon.setAttribute('class', 'ri-sun-line');
+    } else {
+      themeIcon.setAttribute('class', 'ri-moon-line');
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const theme = htmlEl.getAttribute('data-theme');
+      const newTheme = theme === 'dark' ? 'light' : 'dark';
+      htmlEl.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      const iconClass = newTheme === 'dark' ? 'ri-sun-line' : 'ri-moon-line';
+      themeIcon.setAttribute('class', iconClass);
+    });
+
+    // ── File Validation ──
+    const imageInput = document.getElementById('image');
+    const captureInput = document.getElementById('capture_image');
+    const fileHint = document.getElementById('fileHint');
+    const predictForm = document.getElementById('predictForm');
+    const predictButton = predictForm.querySelector('button[type="submit"]');
+
+    // Camera elements
+    const startCameraBtn = document.getElementById('startCameraBtn');
+    const takePhotoBtn = document.getElementById('takePhotoBtn');
+    const stopCameraBtn = document.getElementById('stopCameraBtn');
+    const cameraVideo = document.getElementById('cameraVideo');
+    const cameraCanvas = document.getElementById('cameraCanvas');
+    const cameraHint = document.getElementById('cameraHint');
+    let cameraStream = null;
+
+    function setFileHint(message) {
+      fileHint.textContent = message;
+      fileHint.classList.remove('hidden');
+    }
+
+    function clearFileHint() {
+      fileHint.textContent = '';
+      fileHint.classList.add('hidden');
+    }
+
+    function setCameraHint(message) {
+      if (!cameraHint) return;
+      cameraHint.textContent = message;
+      cameraHint.classList.remove('hidden');
+    }
+
+    function clearCameraHint() {
+      if (!cameraHint) return;
+      cameraHint.textContent = '';
+      cameraHint.classList.add('hidden');
+    }
+
+    function setPredictEnabled(enabled) {
+      predictButton.disabled = !enabled;
+    }
+
+    function isValidFile(file) {
+      if (!file) {
+        setFileHint('Upload or capture an image first.');
+        return false;
+      }
+
+      // Some browsers/devices may not provide a reliable MIME type.
+      if (file.type && !file.type.startsWith('image/')) {
+        setFileHint('Please select a valid image file.');
+        return false;
+      }
+
+      clearFileHint();
+      return true;
+    }
+
+    function getSelectedFile() {
+      return (captureInput && captureInput.files && captureInput.files[0]) || (imageInput.files && imageInput.files[0]) || null;
+    }
+
+    function clearPreview() {
+      const preview = document.getElementById('imagePreview');
+      const prompt  = document.getElementById('dropPrompt');
+      preview.classList.add('hidden');
+      preview.removeAttribute('src');
+      prompt.classList.remove('hidden');
+    }
+
+    function previewFile(file) {
+      const valid = isValidFile(file);
+      if (!valid) {
+        clearPreview();
+        updateFormState();
+        return;
+      }
+
+      const preview = document.getElementById('imagePreview');
+      const prompt  = document.getElementById('dropPrompt');
+      const reader  = new FileReader();
+      reader.onload = (e) => {
+        preview.src = e.target.result;
+        preview.classList.remove('hidden');
+        prompt.classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+      updateFormState();
+    }
+
+    function updateFormState() {
+      const file = getSelectedFile();
+      const valid = isValidFile(file);
+      setPredictEnabled(valid);
+      if (!valid) {
+        clearPreview();
+      }
+    }
+
+    setPredictEnabled(false);
+
+    function previewImage(event) {
+      const file = event.target.files[0];
+      const valid = isValidFile(file);
+      if (!valid) {
+        event.target.value = '';
+        updateFormState();
+        return;
+      }
+
+      // Ensure only one source is selected
+      if (event.target === imageInput && captureInput) captureInput.value = '';
+      previewFile(file);
+    }
+
+    predictForm.addEventListener('submit', function (event) {
+      const file = getSelectedFile();
+      if (!isValidFile(file)) {
+        event.preventDefault();
+        setPredictEnabled(false);
+      }
+
+      // Best-effort: stop camera when user submits.
+      stopCamera();
+    });
+
+    imageInput.addEventListener('change', updateFormState);
+
+    async function startCamera() {
+      clearCameraHint();
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraHint('Camera is not supported in this browser. Use Upload instead.');
+        return;
+      }
+
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } },
+          audio: false
+        });
+
+        cameraVideo.srcObject = cameraStream;
+        cameraVideo.classList.remove('hidden');
+        await cameraVideo.play();
+
+        startCameraBtn.disabled = true;
+        takePhotoBtn.disabled = false;
+        stopCameraBtn.disabled = false;
+      } catch (err) {
+        setCameraHint('Could not access the camera. Allow permission and retry (camera works on HTTPS/localhost).');
+      }
+    }
+
+    function stopCamera() {
+      if (cameraStream) {
+        for (const track of cameraStream.getTracks()) track.stop();
+      }
+      cameraStream = null;
+
+      if (cameraVideo) {
+        cameraVideo.pause();
+        cameraVideo.srcObject = null;
+        cameraVideo.classList.add('hidden');
+      }
+
+      startCameraBtn.disabled = false;
+      takePhotoBtn.disabled = true;
+      stopCameraBtn.disabled = true;
+    }
+
+    async function takePhoto() {
+      clearCameraHint();
+
+      if (!cameraStream || !cameraVideo.videoWidth || !cameraVideo.videoHeight) {
+        setCameraHint('Camera is not running. Click Open camera first.');
+        return;
+      }
+
+      cameraCanvas.width = cameraVideo.videoWidth;
+      cameraCanvas.height = cameraVideo.videoHeight;
+      const ctx = cameraCanvas.getContext('2d');
+      ctx.drawImage(cameraVideo, 0, 0, cameraCanvas.width, cameraCanvas.height);
+
+      const blob = await new Promise((resolve) => cameraCanvas.toBlob(resolve, 'image/jpeg', 0.92));
+      if (!blob) {
+        setCameraHint('Could not capture photo. Try again.');
+        return;
+      }
+
+      const capturedFile = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
+      const dt = new DataTransfer();
+      dt.items.add(capturedFile);
+      captureInput.files = dt.files;
+
+      // Ensure upload picker is cleared so we only submit the capture.
+      imageInput.value = '';
+
+      previewFile(capturedFile);
+    }
+
+    startCameraBtn.addEventListener('click', startCamera);
+    stopCameraBtn.addEventListener('click', stopCamera);
+    takePhotoBtn.addEventListener('click', takePhoto);
+  </script>
+</body>
+</html>
