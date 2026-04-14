@@ -17,6 +17,9 @@ BASE_DIR = Path(__file__).resolve().parent
 app = Flask(__name__)
 app.secret_key = "mpox-detection-skey"
 
+# Optional: prevent huge uploads from exhausting memory.
+app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024  # 5 MB
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -242,6 +245,20 @@ def open_and_validate_uploaded_image(file_storage) -> Image.Image:
     return img
 
 
+def open_and_validate_image_bytes(img_bytes: bytes) -> Image.Image:
+    """Open raw bytes as an image and validate it decodes."""
+    if not img_bytes:
+        raise ValueError("Empty upload")
+
+    try:
+        img = Image.open(io.BytesIO(img_bytes))
+        img = ImageOps.exif_transpose(img)
+    except UnidentifiedImageError as exc:
+        raise ValueError("Not an image") from exc
+
+    return img
+
+
 def predict_disease(img: Image.Image, *, threshold: float, image_model) -> dict:
     img_array = preprocess_pil_image(img)
     input_name = image_model.get_inputs()[0].name
@@ -367,38 +384,47 @@ def predict():
     # ---- form values ----
     raw_country = request.form.get("country", "")
     country = normalize_country_name(raw_country) or COUNTRIES[0]
-    confidence_threshold = DEFAULT_CONFIDENCE_THRESHOLD
 
-    # ---- read image ----
+    # ---- read + validate image (bytes) ----
+    img_bytes = file.read()
     try:
-        img = open_and_validate_uploaded_image(file)
+        open_and_validate_image_bytes(img_bytes)
     except Exception:
         flash("Could not read the uploaded file as an image. Please try a valid image.", "danger")
         return redirect(url_for("index"))
 
-    # ---- run inference ----
-    artifacts = load_artifacts()
-    result = full_system_prediction(
-        img,
-        country,
-        confidence_threshold=confidence_threshold,
-        image_model=artifacts["image_model"],
-        lstm_model=artifacts["lstm_model"],
-        country_windows=artifacts["country_windows"],
-        low_threshold=artifacts["low_threshold"],
-        high_threshold=artifacts["high_threshold"],
-    )
+    # Celery default serializer is JSON; send image bytes as base64.
+    img_b64 = base64.b64encode(img_bytes).decode("utf-8")
 
-    # ---- encode image as base64 for inline display ----
-    buf = io.BytesIO()
-    img.convert("RGB").save(buf, format="JPEG")
-    img_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+    from celery_worker import predict_task
 
+    task = predict_task.delay(img_b64, country)
+    return render_template("loading.html", task_id=task.id)
+
+
+@app.route("/result/<task_id>")
+def get_result(task_id):
+    from celery_worker import celery
+
+    result = celery.AsyncResult(task_id)
+
+    if not result.ready():
+        return render_template("loading.html", task_id=task_id)
+
+    if result.failed():
+        return render_template(
+            "result.html",
+            result={"error": "Prediction failed. Please try again."},
+            country="",
+            img_b64="",
+        )
+
+    payload = result.result or {}
     return render_template(
         "result.html",
-        result=result,
-        country=country,
-        img_b64=img_b64,
+        result=payload.get("result", {}),
+        country=payload.get("country", ""),
+        img_b64=payload.get("img_b64", ""),
     )
 
 

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Processing… – Integrated Mpox System</title>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <meta http-equiv="refresh" content="2;url={{ url_for('get_result', task_id=task_id) }}" />
+</head>
+<body>
+  <div class="page-wrapper">
+
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="header-content">
+          <span class="logo-icon">🦠</span>
+          <div>
+            <h1 class="site-title">Integrated Mpox System</h1>
+            <p class="site-subtitle">Disease Detection &amp; Outbreak Risk Prediction</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="theme-toggle-btn" id="themeToggle" title="Toggle theme" aria-label="Toggle between light and dark theme">
+            <i id="themeIcon" class="ri-moon-line" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="card result-card">
+        <div class="result-badge">
+          Processing your image…
+        </div>
+        <p style="margin-top: 12px;">This page auto-refreshes every 2 seconds.</p>
+        <a href="{{ url_for('get_result', task_id=task_id) }}" class="btn-back" style="margin-top: 16px;">Refresh now</a>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>MPOX Classification &amp; Predictive Modeling &copy; 2026</p>
+    </footer>
+
+  </div>
+
+  <script>
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const htmlEl = document.documentElement;
+
+    const currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    if (currentTheme === 'dark') {
+      htmlEl.setAttribute('data-theme', 'dark');
+      themeIcon.setAttribute('class', 'ri-sun-line');
+    } else {
+      themeIcon.setAttribute('class', 'ri-moon-line');
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const theme = htmlEl.getAttribute('data-theme');
+      const newTheme = theme === 'dark' ? 'light' : 'dark';
+      htmlEl.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      const iconClass = newTheme === 'dark' ? 'ri-sun-line' : 'ri-moon-line';
+      themeIcon.setAttribute('class', iconClass);
+    });
+  </script>
+</body>
+</html>
