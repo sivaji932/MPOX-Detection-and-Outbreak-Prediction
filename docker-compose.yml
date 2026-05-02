@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+
+  flask:
+    build: .
+    container_name: mpox-flask
+    command: gunicorn app:app -w 1 -k gthread --threads 4 --timeout 120 -b 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=${REDIS_URL}
+
+  celery:
+    build: .
+    container_name: mpox-celery
+    command: celery -A celery_worker.celery worker --concurrency=1 --loglevel=info
+    environment:
+      - REDIS_URL=${REDIS_URL}
