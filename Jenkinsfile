@@ -2,9 +2,10 @@ pipeline {
     agent any
 
     environment {
-        AWS_REGION = "ap-south-1"
-        ECR_URI = "857263388884.dkr.ecr.ap-south-1.amazonaws.com/mpox-app"
-        IMAGE_NAME = "mpox-app"
+        AWS_REGION   = "ap-south-1"
+        ECR_REGISTRY = "857263388884.dkr.ecr.ap-south-1.amazonaws.com"
+        ECR_URI      = "857263388884.dkr.ecr.ap-south-1.amazonaws.com/mpox-app"
+        IMAGE_NAME   = "mpox-app"
     }
 
     stages {
@@ -35,8 +36,8 @@ pipeline {
                 ]]) {
 
                     sh '''
-                    aws ecr get-login-password --region $AWS_REGION | \
-                    docker login --username AWS --password-stdin $ECR_URI
+                        aws ecr get-login-password --region $AWS_REGION | \
+                        docker login --username AWS --password-stdin $ECR_REGISTRY
                     '''
                 }
             }
@@ -45,6 +46,22 @@ pipeline {
         stage('Push Image to ECR') {
             steps {
                 sh 'docker push $ECR_URI:latest'
+            }
+        }
+
+        stage('Refresh ASG') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds'
+                ]]) {
+
+                    sh '''
+                        aws autoscaling start-instance-refresh \
+                        --auto-scaling-group-name mpox-asg \
+                        --region $AWS_REGION
+                    '''
+                }
             }
         }
     }
