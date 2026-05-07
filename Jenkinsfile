@@ -59,7 +59,7 @@ pipeline {
                     sh '''
                         aws autoscaling start-instance-refresh \
                         --auto-scaling-group-name mpox-asg \
-                        --region $AWS_REGION
+                        --region $AWS_REGION || true
                     '''
                 }
             }
