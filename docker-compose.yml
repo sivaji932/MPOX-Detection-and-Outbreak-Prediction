@@ -3,17 +3,19 @@ version: "3.9"
 services:
 
   flask:
-    build: .
+    image: 857263388884.dkr.ecr.ap-south-1.amazonaws.com/mpox-app:latest
     container_name: mpox-flask
     command: gunicorn app:app -w 1 -k gthread --threads 4 --timeout 120 -b 0.0.0.0:8000
     ports:
       - "8000:8000"
     environment:
       - REDIS_URL=${REDIS_URL}
+    restart: always
 
   celery:
-    build: .
+    image: 857263388884.dkr.ecr.ap-south-1.amazonaws.com/mpox-app:latest
     container_name: mpox-celery
     command: celery -A celery_worker.celery worker --concurrency=1 --loglevel=info
     environment:
       - REDIS_URL=${REDIS_URL}
+    restart: always
